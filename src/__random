@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+
+get_random_file() {
+  if [[ -d "$1" ]]
+  then
+    path="$1"
+    dir="$1"
+  else
+    dir="$(dirname $1)"
+    path="$dir"
+  fi
+
+  echo "$dir/$(ls $path | sort -R | tail -n 1)"
+}
+
+__random() {
+  source "$ENV_FILE"
+  d="${1:-$(dirname "$WALL")}"
+
+  if [[ -d "$d" ]]
+  then
+    path="$d"
+  else
+    path="$HOME/.wallpapers"
+  fi
+
+  wl="$(get_random_file "$path")"
+
+  __set "$wl"
+}
