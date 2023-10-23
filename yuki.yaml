@@ -1,0 +1,10 @@
+pkg: wallctl
+url: crispybaccoon/wallctl
+desc: a tiny wallpaper manager for Wayland/Xorg.
+
+pack:
+  - type: bin
+    path: wallctl
+
+install:
+  - make clean all
