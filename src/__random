@@ -26,5 +26,5 @@ __random() {
 
   wl="$(get_random_file "$path")"
 
-  __set "$wl"
+  __set "$wl" || return 1
 }
