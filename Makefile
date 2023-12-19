@@ -5,7 +5,7 @@ all: wallctl
 wallctl:
 	@printf '%s\n\n' '#!/bin/sh -e' >wallctl
 	@for i in src/* ; do cat $$i ; echo ; done >>wallctl
-	@echo 'main "$$@"' >>wallctl
+	@echo 'main "$$@" || exit 1' >>wallctl
 
 clean:
 	@-rm wallctl
