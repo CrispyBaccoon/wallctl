@@ -1,20 +1,35 @@
 #!/usr/bin/env sh
 
-__set() {
-  if [[ -f "$1" ]]
-  then 
-    echo "export WALL=\"$1\"" > "$ENV_FILE"
+___set() {
+  [[ -f "$1" ]] || die "file does not exist Path($1)"
 
-    [[ -f "~/.wallpapers" ]] || [[ -d "~/.wallpapers" ]] || ln -sTf "$(dirname "$1")" ~/.wallpapers
-
-    echo "#!/usr/bin/env bash" > "$BIN_FILE"
-    if [[ $XDG_SESSION_TYPE -eq "wayland" ]]
-    then
-    echo swww img --transition-type wipe --transition-step 250 --transition-fps 60 $1 >> "$BIN_FILE"
-    else  
-    echo hsetroot -cover "$1" >> "$BIN_FILE"
-    fi
+  if [[ $XDG_SESSION_TYPE == "wayland" ]]
+  then
+  echo swww img --transition-type wipe --transition-step 250 --transition-fps 60 $1 > "$BIN_FILE"
+  else
+    ok=false
+    has hsetroot && { ok=true; echo hsetroot -cover "$1" > "$BIN_FILE"; }
+    has feh && { ok=true; echo feh --bg-fill "$1" > "$BIN_FILE"; }
+    $ok || die 'no wallpaper manager found (feh / hsetroot).'
   fi
 
+  printf '%s\n%s\n' "#!/usr/bin/env bash" "$(cat "$BIN_FILE")" > "$BIN_FILE"
+
   "$BIN_FILE"
+}
+
+__set() {
+  [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
+
+  [[ -z "$1" ]] && { ___set "$WALLCTL_DIR/.wallpaper.wal" || return 1; return; }
+
+  [[ -f "$1" ]] || die "file does not exist Path($1)"
+
+  echo "export WALL=\"$1\"" > "$ENV_FILE"
+
+  ___set $@ || return 1
+
+  [[ -f "$WALLCTL_DIR/.wallpaper.wal" ]] && rm "$WALLCTL_DIR/.wallpaper.wal"
+  msg "copying '$1' to '$WALLCTL_DIR/.wallpaper.wal'"
+  cp "$1" "$WALLCTL_DIR/.wallpaper.wal"
 }
