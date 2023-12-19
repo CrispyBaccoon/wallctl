@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+__current() {
+  [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
+
+  echo "$WALL"
+}

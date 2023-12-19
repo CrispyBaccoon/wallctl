@@ -46,6 +46,7 @@ has() {
 
 usage() {
 >&2 cat <<"EOF"
+  [current]  -  show current wallpaper
       [set]  -  set wallpaper [picture]
         [r]  -  randomize wallpaper [dir]
 EOF
@@ -61,8 +62,9 @@ main() {
   shift
 
   case $flag in
+    current) __current $@;;
         set) __set $@ ;;
-        r) __random $@ ;;
-        *) die "command does not exist" ;;
+          r) __random $@ ;;
+          *) die "command does not exist" ;;
   esac
 }
