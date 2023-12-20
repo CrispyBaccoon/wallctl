@@ -12,6 +12,9 @@ mkdir -p "$WALLCTL_DIR"
 BIN_FILE="$WALLCTL_DIR/.wallpaperset"
 ENV_FILE="$WALLCTL_DIR/.wallpaperenv"
 
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/wallctl"
+CONFIG_FILE="$CONFIG_DIR/daemon.json"
+
 # -- utils --
 
 msg() {
@@ -49,6 +52,7 @@ usage() {
   [current]  -  show current wallpaper
       [set]  -  set wallpaper [picture]
         [r]  -  randomize wallpaper [dir]
+   [daemon]  -  start daemon [-f <config_file>]
 EOF
 exit 1
 }
@@ -65,6 +69,7 @@ main() {
     current) __current $@;;
         set) __set $@ ;;
           r) __random $@ ;;
+     daemon) __daemon $@ ;;
           *) die "command does not exist" ;;
   esac
 }

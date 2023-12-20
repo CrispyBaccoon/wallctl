@@ -1,0 +1,48 @@
+#!/usr/bin/env sh
+
+__daemon() {
+  has jq || die '`jq` is required to run wallctl daemon'
+
+  [[ "$1" == '-f' ]] && [[ ! -z "$2" ]] && CONFIG_FILE="$(realpath $2)"
+
+  INTERVAL="$(cat "$CONFIG_FILE" | jq '.interval')"
+  TIMES="$(cat "$CONFIG_FILE" | jq '.wallpapers | keys | reverse' | head -n -1 | tail -n +2 | cut -d '"' -f2- | cut -c1-5)"
+
+  current=""
+  current_time=""
+  while true; do
+    new=""
+    actual_time=("$(date +"%H")" "$(date +"%M")")
+
+    found=false
+    echo "$TIMES" | while read time; do
+    if ! $found; then
+      time_sp=("$(echo $time | cut -c1-2)" "$(echo $time | cut -c4-5)")
+      if [[ "${actual_time[0]#0}" -gt "${time_sp[0]#0}" ]]; then
+        found=true
+      fi
+      if [[ "${actual_time[0]#0}" -eq "${time_sp[0]#0}" ]] && [[ "${actual_time[1]}" -gt "${time_sp[1]}" ]]; then
+        found=true
+      fi
+      if $found; then
+        msg "- checking for wallpaper at time '$time'"
+        at_time="$(cat "$CONFIG_FILE" | jq ".wallpapers.\"$time\"")"
+        export new="$(echo "$at_time" | jq -r ".[$(date +'%N') % length]")"
+        msg "- found '$new'"
+
+        [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
+        local current_w="$WALL"
+        [[ -f "$WALLCTL_DIR/.last_time" ]] && source "$WALLCTL_DIR/.last_time"
+        if [[ ! -z "$new" ]] && [[ "$new" != "$current_w" ]] && [[ "$time" != "$last_time" ]]; then
+          current_w="$new"
+          __set "$current_w" || warn "couldn't apply wallpaper '$current_w'"
+          current="$new"
+        fi
+        echo "export last_time='$time'" > "$WALLCTL_DIR/.last_time"
+      fi
+    fi
+    done
+
+    sleep $(("$INTERVAL"*60))
+  done
+}
