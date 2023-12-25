@@ -1,7 +1,13 @@
 #!/usr/bin/env sh
 
+__daemon_cleanup() {
+  rm -f "$WALLCTL_DIR/.last_time"
+}
+
 __daemon() {
   has jq || die '`jq` is required to run wallctl daemon'
+
+  trap __daemon_cleanup EXIT
 
   [[ "$1" == '-f' ]] && [[ ! -z "$2" ]] && CONFIG_FILE="$(realpath $2)"
 
